@@ -1,5 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+/**
+ * This class is used for logging requests so if we get suspicious traffic, we can retrace our steps and look at them in the log files.
+ * @method getLogger - gets the instance of Logger to make sure it is a singleton.
+ * @method log - logs the latest request details to the server log file.
+ */
 export class Logger {
     static instance = null;
     logDirectory;
@@ -49,7 +54,15 @@ export class Logger {
         const fullLogMessage = message;
         fs.appendFile(this.logFilePath, fullLogMessage, (err) => {
             if (err) {
-                console.log(err.message);
+                console.error(err.message);
+            }
+        });
+    }
+    errLog(errorLog) {
+        const fullErrorMessage = errorLog.message;
+        fs.appendFile(this.errorLogPath, fullErrorMessage, (err) => {
+            if (err) {
+                console.error(err.message);
             }
         });
     }

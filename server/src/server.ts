@@ -1,15 +1,15 @@
-import express from "express"
+import Express from "express"
+import { type Request, type Response } from "express";
 import { Logger } from "./utils/logger.js";
 
 const logger = Logger.getLogger();
 
-const api = express();
+const api = Express();
 
 const PORT = process.env.PORT || 3001;
 
-api.get('/', (req, res) => {
-  console.log('Received a GET request on /');
-  console.log(req.headers);
+api.get('/', (req: Request, res: Response) => {
+  logger.log({message: 'testing 123', req: req });
   res.send('Hello World!');
 });
 

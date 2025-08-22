@@ -1,14 +1,26 @@
+import type { Request } from 'express';
 import fs from 'fs';
 import path from 'path';
 
+type LogMessage = {
+    message?: string
+    req: Request
+}
+
 export class Logger {
     private static instance: Logger | null = null;
+    private logDirectory: string
     private logFilePath: string;
+    private errorLogPath: string;
 
     private constructor() {
-        const fullPath = path.resolve('src/logs/server.log');
+        const fullLogDirectory = path.resolve('dist/logs');
+        const fullPath = path.resolve('dist/logs/server.log');
+        const fullErrorLogPath = path.resolve('dist/logs/error.log');
+        this.logDirectory = fullLogDirectory;
         this.logFilePath = fullPath;
-        this.ensureLogFileExists();
+        this.errorLogPath = fullErrorLogPath;
+        this.ensureLogFilesExists();
     }
     
     public static getLogger(): Logger {
@@ -18,21 +30,40 @@ export class Logger {
         return Logger.instance;
     }
 
-    private ensureLogFileExists() {
+    private ensureLogFilesExists() {
+        if(!fs.existsSync(this.logDirectory)) {
+            fs.mkdirSync(this.logDirectory);
+        }
         if (!fs.existsSync(this.logFilePath)) {
-            fs.open(this.logFilePath, 'w', (err, fd) => {
+            fs.writeFile(this.logFilePath, '', 'utf-8', (err) => {
                 if (err) {
                     console.error(`Error creating log file: ${err.message}`);
-                } else {
-                    fs.close(fd, (err) => {
-                        if (err) {
-                            console.error(`Error closing log file: ${err.message}`);
-                        } else {
-                            console.log(`Log file created at ${this.logFilePath}`);
-                        }
-                    });
                 }
             })
         }
+
+        if(!fs.existsSync(this.errorLogPath)) {
+            fs.writeFile(this.errorLogPath, '', 'utf-8', (err) => {
+                if(err) {
+                    console.error(`Error creating log file: ${err.message}`)
+                }
+            })
+        }
+    }
+
+    public log(logMessage: LogMessage) {
+        const timeAndDate = new Date().toUTCString();
+        const request: Request = logMessage.req;
+        const Url = request.url;
+        const method = request.method;
+        const userAgent: String | undefined = request.headers['user-agent'] ?? 'User-Agent Unknown'
+        const message = '[#] ' + timeAndDate + ' - ' + userAgent + ' - ' + method + ' ' + Url + ' - ' + (logMessage.message ?? '') + '\n';
+        
+        const fullLogMessage = message;
+        fs.appendFile(this.logFilePath, fullLogMessage, (err) => {
+            if (err) {
+                console.log(err.message)
+            }
+        })
     }
 }

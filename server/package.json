@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -9,7 +9,7 @@
     "dev": "ts-node src/server.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Hayden Marshall",
   "license": "ISC",
   "description": "",
   "devDependencies": {

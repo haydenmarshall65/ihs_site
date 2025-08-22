@@ -1,11 +1,11 @@
-import express from "express";
-import { Logger } from "./utils/logger";
+import Express from "express";
+import {} from "express";
+import { Logger } from "./utils/logger.js";
 const logger = Logger.getLogger();
-const api = express();
+const api = Express();
 const PORT = process.env.PORT || 3001;
 api.get('/', (req, res) => {
-    console.log('Received a GET request on /');
-    console.log(req.headers);
+    logger.log({ message: 'testing 123', req: req });
     res.send('Hello World!');
 });
 api.listen(PORT, () => {

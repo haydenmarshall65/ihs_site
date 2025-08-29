@@ -9,7 +9,7 @@ const api = Express();
 // Static setup
 api.use(Express.static(path.resolve('dist/public')))
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.APP_PORT || 3001;
 
 // Middleware
 api.use(logMiddleware);

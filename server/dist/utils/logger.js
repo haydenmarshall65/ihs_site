@@ -1,3 +1,4 @@
+import { error } from 'console';
 import fs from 'fs';
 import path from 'path';
 export class Logger {
@@ -39,19 +40,43 @@ export class Logger {
             });
         }
     }
-    log(logMessage) {
-        const timeAndDate = new Date().toUTCString();
-        const request = logMessage.req;
-        const Url = request.url;
-        const method = request.method;
-        const userAgent = request.headers['user-agent'] ?? 'User-Agent Unknown';
-        const message = '[#] ' + timeAndDate + ' - ' + userAgent + ' - ' + method + ' ' + Url + ' - ' + (logMessage.message ?? '') + '\n';
-        const fullLogMessage = message;
-        fs.appendFile(this.logFilePath, fullLogMessage, (err) => {
+    /**
+     * @function log
+     * @description Logs out details to a request. Can take in error details, request details and headers, and
+     * a slot for a message. If intended to be an error, include the isError parameter as true
+     * @param {LogMessage} logMessage
+     * @param {boolean} isError
+     */
+    log(logMessage, isError = false) {
+        const fullLogMessage = this.buildLogMessage(logMessage);
+        let filePath;
+        if (isError) {
+            filePath = this.errorLogPath;
+        }
+        else {
+            filePath = this.logFilePath;
+        }
+        fs.appendFile(filePath, fullLogMessage, (err) => {
             if (err) {
                 console.log(err.message);
             }
         });
+    }
+    buildLogMessage(logMessage) {
+        const timeAndDate = new Date().toUTCString();
+        const request = logMessage.req;
+        let message = '[#] ' + timeAndDate + ' | ';
+        if (logMessage.error !== undefined) {
+            message = message + "ERROR: " + logMessage.error.name + ': ' + logMessage.error.cause + ' ' + logMessage.error.stack + ' | ';
+        }
+        if (request !== undefined) {
+            const Url = request.url;
+            const method = request.method;
+            const userAgent = request.headers['user-agent'] ?? 'User-Agent Unknown';
+            message = message + ' - ' + userAgent + ' - ' + method + ' ' + Url + ' | ';
+        }
+        message = message + ' - ' + (logMessage.message ?? '') + '\n';
+        return message;
     }
 }
 //# sourceMappingURL=logger.js.map

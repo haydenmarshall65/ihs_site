@@ -9,7 +9,9 @@ const api = Express();
 const PORT = process.env.PORT || 3001;
 
 api.get('/', (req: Request, res: Response) => {
-  logger.log({message: 'testing 123', req: req });
+  const err = new TypeError('No body provided')
+  logger.log({req: req, error: err, message: 'False error, ignore'})
+  
   res.send('Hello World!');
 });
 

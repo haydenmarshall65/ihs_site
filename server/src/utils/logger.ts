@@ -122,10 +122,11 @@ export class Logger {
         }
 
         if (request !== undefined) {
+            const ip = this.getIp(request);
             const Url = request.url;
             const method = request.method;
             const userAgent: String | undefined = request.headers['user-agent'] ?? 'User-Agent Unknown'
-            message = message + ' - ' + userAgent + ' - ' + method + ' ' + Url + ' | '
+            message = message + ' - ' + userAgent + ' - ' + method + ' ' + Url + ' IP: ' + ip + ' | '
         }
 
         message = message + ' - ' + (logMessage.message ?? '') + '\n';

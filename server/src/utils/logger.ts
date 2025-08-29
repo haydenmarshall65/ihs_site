@@ -1,4 +1,4 @@
-import { error } from 'console';
+import { debug, error } from 'console';
 import type { Request } from 'express';
 import fs from 'fs';
 import path from 'path';
@@ -8,13 +8,22 @@ type LogMessage = {
     req?: Request
     error?: Error
 }
-
+/**
+ * This class is used for logging requests so if we get suspicious traffic, we can retrace our steps and look at them in the log files.
+ * @method getLogger - gets the instance of Logger to make sure it is a singleton.
+ * @method log - logs the latest request details to the server log file.
+ * @method errLog - logs an error to the error log, taking in a message and an optional request details to share details if the error was regarding a request.
+ */
 export class Logger {
     private static instance: Logger | null = null;
     private logDirectory: string
     private logFilePath: string;
     private errorLogPath: string;
 
+    /**
+     * This constructor uses the Singleton design pattern, which means there can only be one Logger instance
+     * running at any time. 
+     */
     private constructor() {
         const fullLogDirectory = path.resolve('dist/logs');
         const fullPath = path.resolve('dist/logs/server.log');
@@ -25,6 +34,10 @@ export class Logger {
         this.ensureLogFilesExists();
     }
     
+    /**
+     * Gets the latest logger instance. Ensures only one exists at a time.
+     * @returns {Logger}
+     */
     public static getLogger(): Logger {
         if (Logger.instance === null) {
             Logger.instance = new Logger();
@@ -32,6 +45,9 @@ export class Logger {
         return Logger.instance;
     }
 
+    /**
+     * Ensures the log files and their directory exists before attempting to write anything.
+     */
     private ensureLogFilesExists() {
         if(!fs.existsSync(this.logDirectory)) {
             fs.mkdirSync(this.logDirectory);
@@ -54,30 +70,52 @@ export class Logger {
     }
 
     /**
+     * Formats the IP from the request, returning either the original client IP instead of a proxy, or just the regular IP used to connect.
+     * @param {Request} request
+     * @returns {string}
+     */
+    private getIp(request: Request): string {
+        const ips = request.ips;
+        let ip: string | undefined;
+        if(ips.length === 0) {
+            ip = request.ip
+        } else {
+            ip = ips[0]
+        }
+
+        return ip ?? "IP Unkown"
+    }
+
+    /**
      * @function log
      * @description Logs out details to a request. Can take in error details, request details and headers, and 
-     * a slot for a message. If intended to be an error, include the isError parameter as true
+     * a slot for a message. 
      * @param {LogMessage} logMessage
-     * @param {boolean} isError 
      */
-    public log(logMessage: LogMessage, isError: boolean = false) {
+    public log(logMessage: LogMessage) {
         const fullLogMessage = this.buildLogMessage(logMessage); 
-
-        let filePath;
-
-        if (isError) {
-            filePath = this.errorLogPath;
-        } else {
-            filePath = this.logFilePath;
-        }
         
-        fs.appendFile(filePath, fullLogMessage, (err) => {
+        fs.appendFile(this.logFilePath, fullLogMessage, (err) => {
             if (err) {
-                console.log(err.message)
+                console.error(err.message)
             }
         })
     }
 
+    public errorLog(logMessage: LogMessage) {
+        if (logMessage.error === undefined) {
+            throw new TypeError("Please provide an Error in order to log to error.log")
+        } else {
+            const fullLogMessage = this.buildLogMessage(logMessage); 
+            
+            fs.appendFile(this.logFilePath, fullLogMessage, (err) => {
+                if (err) {
+                    console.error(err.message)
+                }
+            })
+        }
+    }
+    
     private buildLogMessage(logMessage: LogMessage): string {
         const timeAndDate = new Date().toUTCString();
         const request: Request | undefined = logMessage.req;
@@ -89,10 +127,11 @@ export class Logger {
         }
 
         if (request !== undefined) {
+            const ip = this.getIp(request);
             const Url = request.url;
             const method = request.method;
             const userAgent: String | undefined = request.headers['user-agent'] ?? 'User-Agent Unknown'
-            message = message + ' - ' + userAgent + ' - ' + method + ' ' + Url + ' | '
+            message = message + ' - ' + userAgent + ' - ' + method + ' ' + Url + ' IP: ' + ip + ' | '
         }
 
         message = message + ' - ' + (logMessage.message ?? '') + '\n';

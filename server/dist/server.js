@@ -1,15 +1,18 @@
+import path from "path";
 import Express from "express";
-import {} from "express";
-import { Logger } from "./utils/logger.js";
-const logger = Logger.getLogger();
+import logMiddleware from "./middleware/log.js";
+import apiOnlyMiddleware from './middleware/apiOnly.js';
+import healthcheckRouter from './routes/healthcheck.js';
 const api = Express();
+// Static setup
+api.use(Express.static(path.resolve('dist/public')));
 const PORT = process.env.PORT || 3001;
-api.get('/', (req, res) => {
-    const err = new TypeError('No body provided');
-    logger.log({ req: req, error: err, message: 'False error, ignore' });
-    res.send('Hello World!');
-});
+// Middleware
+api.use(logMiddleware);
+api.use(apiOnlyMiddleware);
+// Routes
+api.use('/healthcheck', healthcheckRouter);
 api.listen(PORT, () => {
-    return console.log(`Express is listening at http://localhost:${PORT}`);
+    console.log(`Express is listening at http://localhost:${PORT}`);
 });
 //# sourceMappingURL=server.js.map

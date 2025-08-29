@@ -1,15 +1,18 @@
+import path from "path";
 import Express from "express";
-import {} from "express";
-import { Logger } from "./utils/logger.js";
 import logMiddleware from "./middleware/log.js";
-const logger = Logger.getLogger();
+import apiOnlyMiddleware from './middleware/apiOnly.js';
+import healthcheckRouter from './routes/healthcheck.js';
 const api = Express();
+// Static setup
+api.use(Express.static(path.resolve('dist/public')));
 const PORT = process.env.PORT || 3001;
+// Middleware
 api.use(logMiddleware);
-api.get('/', (req, res) => {
-    res.send('Hello World!');
-});
+api.use(apiOnlyMiddleware);
+// Routes
+api.use('/healthcheck', healthcheckRouter);
 api.listen(PORT, () => {
-    return console.log(`Express is listening at http://localhost:${PORT}`);
+    console.log(`Express is listening at http://localhost:${PORT}`);
 });
 //# sourceMappingURL=server.js.map

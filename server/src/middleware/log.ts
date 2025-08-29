@@ -4,7 +4,8 @@ import { Logger } from "../utils/logger.js";
 const logMiddleware = function(req: Request, res: Response, next: NextFunction) {
     const logger = Logger.getLogger();
 
-    logger.log({req: req})
+    logger.log({req: req});
+    next();
 }
 
 export default logMiddleware;

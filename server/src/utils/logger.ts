@@ -1,16 +1,13 @@
+import { error } from 'console';
 import type { Request } from 'express';
 import fs from 'fs';
 import path from 'path';
 
 type LogMessage = {
     message?: string
-    req: Request
-}
-type ErrorLogMessage = {
-    message: string
     req?: Request
+    error?: Error
 }
-
 /**
  * This class is used for logging requests so if we get suspicious traffic, we can retrace our steps and look at them in the log files.
  * @method getLogger - gets the instance of Logger to make sure it is a singleton.
@@ -89,42 +86,50 @@ export class Logger {
         return ip ?? "IP Unkown"
     }
 
-    public log(logMessage: LogMessage) {
-        const timeAndDate = new Date().toUTCString();
-        const request: Request = logMessage.req;
-        const Url = request.url;
-        const method = request.method;
-        const userAgent: String | undefined = request.headers['user-agent'] ?? 'User-Agent Unknown';
-        const ip = this.getIp(request);
-        const message = '[#] ' + timeAndDate + ' - ' + userAgent + ', IP: ' + ip + ' - ' + method + ' ' + Url + ' - ' + (logMessage.message ?? '') + '\n';
+    /**
+     * @function log
+     * @description Logs out details to a request. Can take in error details, request details and headers, and 
+     * a slot for a message. If intended to be an error, include the isError parameter as true
+     * @param {LogMessage} logMessage
+     * @param {boolean} isError 
+     */
+    public log(logMessage: LogMessage, isError: boolean = false) {
+        const fullLogMessage = this.buildLogMessage(logMessage); 
+
+        let filePath;
+
+        if (isError) {
+            filePath = this.errorLogPath;
+        } else {
+            filePath = this.logFilePath;
+        }
         
-        const fullLogMessage = message;
-        fs.appendFile(this.logFilePath, fullLogMessage, (err) => {
+        fs.appendFile(filePath, fullLogMessage, (err) => {
             if (err) {
                 console.error(err.message)
             }
         })
     }
     
-    public errLog(errorLog: ErrorLogMessage) {
+    private buildLogMessage(logMessage: LogMessage): string {
         const timeAndDate = new Date().toUTCString();
-        const request: Request | undefined = errorLog.req;
-        
-        let fullErrorMessage = '[X] ' + timeAndDate + ' - ERROR: ' + errorLog.message; 
+        const request: Request | undefined = logMessage.req;
 
-        if(request) {
-            const reqBody = request.body
-            const url = request.url
-            const method = request.method;
-            const userAgent = request.headers['user-agent'] ?? 'User Agent Unknown'
-            const ip = this.getIp(request)
-            fullErrorMessage = fullErrorMessage + ' - Request: ' + url + ' ' + method + ', IP: ' + ip + ' - ' + userAgent;
+        let message = '[#] ' + timeAndDate + ' | ';
+
+        if (logMessage.error !== undefined) {
+            message = message + "ERROR: " +  logMessage.error.name + ': ' + logMessage.error.cause + ' ' + logMessage.error.stack + ' | '
         }
 
-        fs.appendFile(this.errorLogPath, fullErrorMessage, (err) => {
-            if (err) {
-                console.error(err.message);
-            }
-        })
+        if (request !== undefined) {
+            const Url = request.url;
+            const method = request.method;
+            const userAgent: String | undefined = request.headers['user-agent'] ?? 'User-Agent Unknown'
+            message = message + ' - ' + userAgent + ' - ' + method + ' ' + Url + ' | '
+        }
+
+        message = message + ' - ' + (logMessage.message ?? '') + '\n';
+        
+        return message;
     }
 }

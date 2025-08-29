@@ -1,7 +1,8 @@
 import type { Request } from 'express';
 type LogMessage = {
     message?: string;
-    req: Request;
+    req?: Request;
+    error?: Error;
 };
 type ErrorLogMessage = {
     message: string;
@@ -20,8 +21,20 @@ export declare class Logger {
     private constructor();
     static getLogger(): Logger;
     private ensureLogFilesExists;
+<<<<<<< HEAD
     log(logMessage: LogMessage): void;
     errLog(errorLog: ErrorLogMessage): void;
+=======
+    /**
+     * @function log
+     * @description Logs out details to a request. Can take in error details, request details and headers, and
+     * a slot for a message. If intended to be an error, include the isError parameter as true
+     * @param {LogMessage} logMessage
+     * @param {boolean} isError
+     */
+    log(logMessage: LogMessage, isError?: boolean): void;
+    private buildLogMessage;
+>>>>>>> main
 }
 export {};
 //# sourceMappingURL=logger.d.ts.map

@@ -1,4 +1,4 @@
-import { error } from 'console';
+import { debug, error } from 'console';
 import type { Request } from 'express';
 import fs from 'fs';
 import path from 'path';
@@ -89,26 +89,31 @@ export class Logger {
     /**
      * @function log
      * @description Logs out details to a request. Can take in error details, request details and headers, and 
-     * a slot for a message. If intended to be an error, include the isError parameter as true
+     * a slot for a message. 
      * @param {LogMessage} logMessage
-     * @param {boolean} isError 
      */
-    public log(logMessage: LogMessage, isError: boolean = false) {
+    public log(logMessage: LogMessage) {
         const fullLogMessage = this.buildLogMessage(logMessage); 
-
-        let filePath;
-
-        if (isError) {
-            filePath = this.errorLogPath;
-        } else {
-            filePath = this.logFilePath;
-        }
         
-        fs.appendFile(filePath, fullLogMessage, (err) => {
+        fs.appendFile(this.logFilePath, fullLogMessage, (err) => {
             if (err) {
                 console.error(err.message)
             }
         })
+    }
+
+    public errorLog(logMessage: LogMessage) {
+        if (logMessage.error === undefined) {
+            throw new TypeError("Please provide an Error in order to log to error.log")
+        } else {
+            const fullLogMessage = this.buildLogMessage(logMessage); 
+            
+            fs.appendFile(this.logFilePath, fullLogMessage, (err) => {
+                if (err) {
+                    console.error(err.message)
+                }
+            })
+        }
     }
     
     private buildLogMessage(logMessage: LogMessage): string {

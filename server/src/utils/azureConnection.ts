@@ -1,7 +1,7 @@
 import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 import { DefaultAzureCredential } from "@azure/identity";
 
-export default class AzureConnection implements AzureConnection {
+export default class AzureBlobConnection {
     account: string
     containerName: string;
     blobServiceClient: BlobServiceClient;

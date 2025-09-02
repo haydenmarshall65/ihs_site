@@ -15,7 +15,7 @@ api.use(logMiddleware);
 api.use(apiOnlyMiddleware);
 // Routes
 api.use('/healthcheck', healthcheckRouter);
-api.use('/download', researchPaperRouter);
+api.use('/api/v1/download', researchPaperRouter);
 api.listen(PORT, () => {
     console.log(`Express is listening at http://localhost:${PORT}`);
 });

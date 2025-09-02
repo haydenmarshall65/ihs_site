@@ -3,7 +3,7 @@ export declare class Storage {
     private filePath;
     private constructor();
     static getStorageInstance(): Storage;
-    get(fileName: string): string;
+    get(fileName: string): string | undefined;
     private getFromPublicDir;
     private getFromAzureBlob;
 }

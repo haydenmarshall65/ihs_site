@@ -1,4 +1,6 @@
 import path from "path";
+import AzureConnection from "./azureConnection.js";
+import { readFileSync } from "fs";
 
 export class Storage {
     private static instance: Storage | null = null
@@ -17,23 +19,36 @@ export class Storage {
         return Storage.instance;
     }
 
-    public get(fileName: string): string {
+    public get(fileName: string): string | undefined {
         if (process.env.APP_ENV === 'dev') {
             const fileContents = this.getFromPublicDir(fileName)
             return fileContents;
         } else {
-            const azureFileContents = this.getFromAzureBlob(fileName)
+            let azureFileContents: string | undefined; 
+            this.getFromAzureBlob(fileName).then((contents) => {
+                azureFileContents = contents;
+            })
+
             return azureFileContents;
         }
     }
 
     private getFromPublicDir(fileName: string): string {
-        // TODO implement
-        return ''
+        const filePath: string = 'papers/' + fileName;
+
+        const contents = readFileSync(filePath);
+        
+        return contents.toString();
     }
     
-    private getFromAzureBlob(fileName: string): string {
-        // TODO implement && npm install @azure/storage-blob @azure/identity
-        return ''
+    private async getFromAzureBlob(fileName: string): Promise<string | undefined> {
+        // TODO get actual azure Account and Container names
+        const azureAccount = '';
+        const azureContainer = '';
+
+        const conn = new AzureConnection(azureAccount, azureContainer);
+
+        const contents = await conn.getBlob(fileName);
+        return contents;
     }
 }

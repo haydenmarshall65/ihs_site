@@ -12,10 +12,16 @@ researchPaperRouter.get('/:fileName', (req, res) => {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
         const contents = storage.get(fileName);
-        res.send(fileName);
+        if (contents !== undefined) {
+            res.send(contents);
+        }
+        else {
+            res.status(400).send("Could not find a file with name " + fileName + ". Try a new name or check for spelling errors.");
+        }
     }
     else {
         res.status(500).send("Please send a fileName");
     }
 });
+export default researchPaperRouter;
 //# sourceMappingURL=researchPapers.js.map

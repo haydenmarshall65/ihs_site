@@ -34,7 +34,7 @@ export class Storage {
     }
 
     private getFromPublicDir(fileName: string): string {
-        const filePath: string = 'papers/' + fileName;
+        const filePath: string = this.filePath + '/' + fileName;
 
         const contents = readFileSync(filePath);
         
